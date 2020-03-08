@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -22,9 +23,10 @@ public class Graph : MonoBehaviour
         MultiSineFunction,
         Sine2DFunction,
         MultiSine2DFunction,
-        Ripple,
-        Cylinder,
-        Sphere,
+        RippleFunction,
+        CylinderFunction,
+        SphereFunction,
+        TorusFunction,
     };
 
     public enum FunctionType
@@ -36,6 +38,7 @@ public class Graph : MonoBehaviour
         Ripple,
         Cylinder,
         Sphere,
+        Torus,
     }
 
     private void Awake()
@@ -71,12 +74,22 @@ public class Graph : MonoBehaviour
         }
     }
 
+    public static float Sin(float x, float t = .0f, float pi = pi)
+    {
+        return Mathf.Sin(pi * (x + t));
+    }
+
+    public static float Cos(float x, float t = .0f, float pi = pi)
+    {
+        return Mathf.Cos(pi * (x + t));
+    }
+
     public static Vector3 SineFunction(float x, float z, float t)
     {
         Vector3 p;
 
         p.x = x;
-        p.y = Mathf.Sin(pi * (x + t));
+        p.y = Sin(x, t);
         p.z = z;
 
         return p;
@@ -87,8 +100,8 @@ public class Graph : MonoBehaviour
         Vector3 p;
         
         p.x = x;
-        p.y = Mathf.Sin(pi * (x + t));
-        p.y += Mathf.Sin(2f * pi * (x + 2f * t)) / 2f;
+        p.y = Sin(x, t);
+        p.y += Sin(x, 2f * t, 2f * pi) / 2f;
         p.y *= 2f / 3f;
         p.z = z;
 
@@ -100,8 +113,8 @@ public class Graph : MonoBehaviour
         Vector3 p;
 
         p.x = x;
-        p.y = Mathf.Sin(pi * (x + t));
-        p.y += Mathf.Sin(pi * (z + t));
+        p.y = Sin(x, t);
+        p.y += Sin(z, t);
         p.y *= 0.5f;
         p.z = z;
         
@@ -113,52 +126,80 @@ public class Graph : MonoBehaviour
         Vector3 p;
 
         p.x = x;
-        p.y = 4f * Mathf.Sin(pi * (x + z + t / 2f));
-        p.y += Mathf.Sin(pi * (x + t));
-        p.y += Mathf.Sin(2f * pi * (z + 2f * t)) * 0.5f;
+        p.y = 4f * Sin(x + z, t / 2f);
+        p.y += Sin(x, t);
+        p.y += Sin(z, 2f * t, 2f * pi) * 0.5f;
         p.y *= 1f / 5.5f;
         p.z = z;
         
         return p;
     }
 
-    public static Vector3 Ripple(float x, float z, float t)
+    public static Vector3 RippleFunction(float x, float z, float t)
     {
         Vector3 p;
         
         float d = Mathf.Sqrt(x * x + z * z);
+
         p.x = x;
-        p.y = Mathf.Sin(pi * (4f * d - t));
+        p.y = Sin(4f * d, -t);
         p.y /= 1f + 10f * d;
         p.z = z;
 
         return p;
     }
 
-    public static Vector3 Cylinder(float u, float v, float t)
+    public static Vector3 CylinderFunction(float u, float v, float t)
     {
         Vector3 p;
 
-        float r = .8f + Mathf.Sin(pi * (6f * u + 2f * v + t)) * .2f;
+        float r = .8f + Sin(6f * u + 2f * v, t) * .2f;
 
-        p.x = r * Mathf.Sin(pi * u);
+        p.x = r * Sin(u);
         p.y = v;
-        p.z = r * Mathf.Cos(pi * u);
+        p.z = r * Cos(u);
 
         return p;
     }
 
-    public static Vector3 Sphere(float u, float v, float t)
+    public static Vector3 SphereFunction(float u, float v, float t)
     {
-        Vector3 p;
+        Vector3 point;
 
-        float r = .8f + Mathf.Sin(pi * (6f * u + t)) * .1f;
-        r += Mathf.Sin(pi * (4f * v + t)) * .1f;
-        float s = r * Mathf.Cos(pi * .5f * v);
-        p.x = s * Mathf.Sin(pi * u);
-        p.y = r * Mathf.Sin(pi * .5f * v);
-        p.z = s * Mathf.Cos(pi * u);
+        float radius = .8f + Sin(6f * u, t) * .1f;
+        radius += Sin(4f * v, t) * .1f;
 
-        return p;
+        float s = radius * Cos(.5f * v);
+        
+        point.x = s * Sin(u);
+        point.y = radius * Sin(.5f * v);
+        point.z = s * Cos(u);
+
+        return point;
+    }
+
+    public static Vector3 TorusFunction(float u, float v, float t)
+    {
+        Vector3 point;
+
+        //float r1 = 1f; //Simple torus radiuses
+        //float r2 = .5f;
+
+        float r1 = .65f + Sin(6f * u, t) * .1f;
+        float r2 = .2f + Sin(4f * v, t) * .05f;
+
+        float s = r2 * Cos(v) + r1;
+
+        point.x = s * Sin(u);
+        point.y = r2 * Sin(v);
+        point.z = s * Cos(u);
+
+        return point;
+    }
+
+    public void SwitchFunction(string type)
+    {
+        Enum.TryParse(type, out FunctionType function);
+        functionType =  function;
     }
 }
