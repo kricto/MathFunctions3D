@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class Graph : MonoBehaviour
@@ -58,38 +57,21 @@ public class Graph : MonoBehaviour
         }
     }
 
-    private async void Update()
+    private void Update()
     {
         float time = Time.time;
         GraphFunction f = functions[(int)functionType];
 
         float step = 2f / resolution;
-
-        await LoopAsync(resolution, step, f, time);
-    }
-
-    public async Task LoopAsync(int resolution, float step, GraphFunction f, float time)
-    {
-        List<Task> listOfTasks = new List<Task>();
-
         for (int i = 0, z = 0; z < resolution; z++)
         {
             float v = (z + 0.5f) * step - 1f;
             for (int x = 0; x < resolution; x++, i++)
             {
                 float u = (x + 0.5f) * step - 1f;
-                listOfTasks.Add(DoAsync(i, f, u, v, time));
+                points[i].localPosition = f(u, v, time);
             }
         }
-
-        await Task.WhenAll(listOfTasks);
-    }
-
-    public Task DoAsync(int i, GraphFunction f, float u, float v, float time)
-    {
-        points[i].localPosition = f(u, v, time);
-
-        return Task.CompletedTask;
     }
 
     public static float Sin(float x, float t = .0f, float pi = pi)
